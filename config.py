@@ -8,12 +8,14 @@ class Bot:
 
 @dataclass
 class Database:
-    pass
+    db_host:str
+    db_user:str
+    db_password:str
 
 @dataclass
 class Config:
     tg_bot:Bot
-    #database:Database
+    database:Database
 
 def load_config(path=None):
     env = Env()
@@ -21,5 +23,10 @@ def load_config(path=None):
 
     return Config(tg_bot=Bot(
                              token=env['BOT_TOKEN'],
-                             admin_ids=map(int, env.list('ADMIN_IDS')))
+                             admin_ids=map(int, env.list('ADMIN_IDS'))),
+                  database=Database(
+                             db_host=env['DB_HOST'],
+                             db_user=env['DB_USER'],
+                             db_password=env['DB_PASSWORD']
+                  )
                   )
