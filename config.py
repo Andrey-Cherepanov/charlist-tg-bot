@@ -11,6 +11,7 @@ class Database:
     db_host:str
     db_user:str
     db_password:str
+    db_origin:str
 
 @dataclass
 class Config:
@@ -27,6 +28,7 @@ def load_config(path=None):
                   database=Database(
                              db_host=env('DB_HOST'),
                              db_user=env('DB_USER'),
-                             db_password=env('DB_PASSWORD')
+                             db_password=env('DB_PASSWORD'),
+                             db_origin=env('DB_ORIGIN'),
                   )
                   )

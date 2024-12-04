@@ -38,3 +38,17 @@ def get_databases(cnx=None):
 
 
 def create_database(cnx=None):
+    """ Create database and origin table if not exists"""
+    if not cnx:
+        cnx = get_connection()
+    config= load_config()
+    origin = config.database.db_origin
+    databases = get_databases()
+    if not origin in databases:
+        try:
+            with cnx.cursor() as cursor:
+                cursor.execute(f"CREATE DATABASE {origin}")
+        except Error:
+            logger.error('Ошибка взаимодействия с базой данных', exc_info=True)
+            return False
+    return True
