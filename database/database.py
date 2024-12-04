@@ -20,3 +20,21 @@ def get_connection(connection_params=None):
         logger.error('Ошибка подключения к базе данных', exc_info=True)
         return None
     return cnx
+
+
+def get_databases(cnx=None):
+    """Returns databases in this connextion"""
+    if not cnx:
+        cnx = get_connection()
+    result = list()
+    try:
+        with cnx.cursor() as cursor:
+            cursor.execute("SHOW DATABASES")
+            result = [db[0] for db in cursor]
+    except Error:
+        logger.error('Ошибка взаимодействия с базой данных', exc_info=True)
+    finally:
+        return result
+
+
+def create_database(cnx=None):
