@@ -1,6 +1,10 @@
 from environs import Env
 from dataclasses import dataclass
 
+ORIGIN = 'origin'
+MASTER_TABLE = 'master'
+PREFIX = 'charlist'
+
 @dataclass
 class Bot:
     token:str
@@ -13,6 +17,7 @@ class Database:
     db_password:str
     db_origin:str
     db_master_table:str
+    db_prefix:str
 
 @dataclass
 class Config:
@@ -30,7 +35,8 @@ def load_config(path=None):
                              db_host=env('DB_HOST'),
                              db_user=env('DB_USER'),
                              db_password=env('DB_PASSWORD'),
-                             db_origin=env('DB_ORIGIN'),
-                             db_master_table=env('DB_MASTER_TABLE')
+                             db_origin=ORIGIN,
+                             db_master_table=MASTER_TABLE,
+                             db_prefix=PREFIX
                   )
                   )
