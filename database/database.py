@@ -4,7 +4,7 @@ from config import load_config
 
 logger = logging.getLogger(__name__)
 
-def get_connection(connection_params=None):
+def get_connection(connection_params=None, database=None):
     """ Get connection to DB
     connection_params must be {'host':'<host>', 'user':'<user>', 'password':'<password>'}
     if not connection_params dict given, it will be obtained from the configs"""
@@ -15,7 +15,10 @@ def get_connection(connection_params=None):
         else:
             config = load_config()
             host, user, password = config.database.db_host, config.database.db_user, config.database.db_password
-        cnx = connect(host=host, user=user, password=password)
+        if database:
+            cnx = connect(host=host, user=user, password=password, database=database)
+        else:
+            cnx = connect(host=host, user=user, password=password)
     except Error:
         logger.error('Ошибка подключения к базе данных', exc_info=True)
         return None
@@ -56,17 +59,35 @@ def get_tables(cnx=None, database=None):
         return result
 
 
+
 def create_database(cnx=None):
     """ Create database and origin table if not exists"""
     if not cnx:
         cnx = get_connection()
-    config= load_config()
+    config = load_config()
     origin = config.database.db_origin
     databases = get_databases()
     if not origin in databases:
         try:
             with cnx.cursor() as cursor:
                 cursor.execute(f"CREATE DATABASE {origin}")
+        except Error:
+            logger.error('Ошибка взаимодействия с базой данных', exc_info=True)
+            return False
+    return True
+
+def create_master_table(cnx=None):
+    """ Creates master table if not exists"""
+    config = load_config()
+    master = config.database.db_master_table
+    origin = config.database.db_origin
+    if not cnx:
+        cnx = get_connection(database=origin)
+    tables = get_tables(cnx, origin)
+    if not master in tables:
+        try:
+            with cnx.cursor() as cursor:
+                cursor.execute(f"create table {origin}.{master} (id INT AUTO_INCREMENT PRIMARY KEY, master_id INT, table_name CHAR(50), columns TEXT)")
         except Error:
             logger.error('Ошибка взаимодействия с базой данных', exc_info=True)
             return False
