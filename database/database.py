@@ -36,6 +36,25 @@ def get_databases(cnx=None):
     finally:
         return result
 
+def get_tables(cnx=None, database=None):
+    """ get tables from database"""
+    if not database:
+        config = load_config()
+        database = config.database.db_origin()
+    if not cnx:
+        cnx = get_connection()
+
+    result = list()
+
+    try:
+        with cnx.cursor() as cursor:
+            cursor.execute(f"SHOW TABLES FROM {database}")
+            result = [table[0] for table in cursor]
+    except Error:
+        logger.error('Ошибка взаимодействия с базой данных', exc_info=True)
+    finally:
+        return result
+
 
 def create_database(cnx=None):
     """ Create database and origin table if not exists"""
