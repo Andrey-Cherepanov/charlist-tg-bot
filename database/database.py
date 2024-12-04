@@ -81,13 +81,14 @@ def create_master_table(cnx=None):
     config = load_config()
     master = config.database.db_master_table
     origin = config.database.db_origin
+    prefix = config.database.db_prefix
     if not cnx:
         cnx = get_connection(database=origin)
     tables = get_tables(cnx, origin)
-    if not master in tables:
+    if not f'{prefix}_{master}' in tables:
         try:
             with cnx.cursor() as cursor:
-                cursor.execute(f"create table {origin}.{master} (id INT AUTO_INCREMENT PRIMARY KEY, master_id INT, table_name CHAR(50), columns TEXT)")
+                cursor.execute(f"create table {origin}.{prefix}_{master} (id INT AUTO_INCREMENT PRIMARY KEY, master_id INT, table_name CHAR(50), columns TEXT)")
         except Error:
             logger.error('Ошибка взаимодействия с базой данных', exc_info=True)
             return False
