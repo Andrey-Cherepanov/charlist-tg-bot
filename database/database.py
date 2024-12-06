@@ -1,6 +1,7 @@
 import logging
 from mysql.connector import connect, Error
 from config import load_config
+from services.features import translitirate
 
 logger = logging.getLogger(__name__)
 
@@ -93,3 +94,43 @@ def create_master_table(cnx=None):
             logger.error('Ошибка взаимодействия с базой данных', exc_info=True)
             return False
     return True
+
+def _columns_to_string(columns):
+    res = ''
+    for column, column_type in columns:
+        res += f'column_{translitirate(column)},{column_type};'
+    return res[:-1]
+
+def _string_to_columns(string):
+    res = dict()
+    for key, value in map(lambda x: x.split(','), string.split(';')):
+        res[key] = value
+    return res
+
+def create_table(name, master_id, columns, cnx=None):
+    # TODO: add types to columns
+    """ Creates a new table with given columns
+        Makes a new write in master table """
+    config = load_config()
+    prefix = config.database.db_prefix
+    origin = config.database.db_origin
+    master = prefix + '_' + config.database.db_master_table
+    table_name = f'{prefix}_{translitirate(name)}'
+    columns_line = _columns_to_string(columns)
+    if not cnx:
+        cnx = get_connection()
+    try:
+        with cnx.cursor() as cursor:
+            query = f"""
+            INSERT INTO {origin}.{master} (master_id, table_name, columns)
+            VALUES
+                ({master_id}, \"{table_name}\", \"{columns_line}\")
+            """
+            cursor.execute(query)
+        with cnx.cursor() as cursor:
+            query = f"create table {origin}.{table_name} (id INT AUTO_INCREMENT PRIMARY KEY, char_owner INT, "
+            query += ', '.join(map(lambda x: f'column_{translitirate(x[0])} {x[1].upper()}', columns))
+            query += ')'
+            cursor.execute(query)
+    except Error:
+        logger.error('Ошибка взаимодействия с базой данных', exc_info=True)

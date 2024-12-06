@@ -37,7 +37,7 @@ def translitirate(line):
      'я':'ja'}
 
     result = ''
-    for c in line.strip():
+    for c in line.strip().lower():
         if c in alpha.keys():
             result += alpha[c]
         elif c in alter:
